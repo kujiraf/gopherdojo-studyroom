@@ -74,7 +74,7 @@ func isSupported(ext string) bool {
 }
 
 // DoConvert converts image's extension from c.From to c.To.
-func (c *Converter) DoConvert() error {
+func (c *Converter) DoConvert() (err error) {
 
 	// 出力先パスを絶対パスに変える
 	if !filepath.IsAbs(c.Dst) {
@@ -88,12 +88,15 @@ func (c *Converter) DoConvert() error {
 
 	// 処理対象のディレクトリに移動する。処理が終われば元の場所に戻る。
 	prevDir, err := filepath.Abs(".")
-	c.debugf("current dir : %s\n", prevDir)
 	if err != nil {
 		return err
 	}
-	os.Chdir(c.Src)
-	defer os.Chdir(prevDir)
+	c.debugf("current dir : %s\n", prevDir)
+	err = os.Chdir(c.Src)
+	if err != nil {
+		return err
+	}
+	defer func() { setNewError(os.Chdir(prevDir), &err) }()
 
 	// 処理対象のディレクトリ名取得
 	workDir, err := os.Getwd()
@@ -156,45 +159,59 @@ func (c *Converter) convert(inputfile string, root string) error {
 	return nil
 }
 
-func (c Converter) decode(input string) (image.Image, error) {
+func (c Converter) decode(input string) (img image.Image, err error) {
 	in, err := os.Open(input)
-	defer in.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer func() { setNewError(in.Close(), &err) }()
 
 	switch c.From {
 	case PNG:
 		c.debugf("decode %s file %s\n", PNG, input)
-		return png.Decode(in)
+		img, err = png.Decode(in)
+		return
 	case GIF:
 		c.debugf("decode %s file %s\n", GIF, input)
-		return gif.Decode(in)
+		img, err = gif.Decode(in)
+		return
 	default:
 		c.debugf("decode %s file %s\n", JPEG, input)
-		return jpeg.Decode(in)
+		img, err = jpeg.Decode(in)
+		return
 	}
 }
 
-func (c Converter) encode(output string, m image.Image) error {
+func (c Converter) encode(output string, m image.Image) (err error) {
 	newfile, err := os.Create(output)
-	defer newfile.Close()
 	if err != nil {
 		return err
 	}
+	defer func() { setNewError(newfile.Close(), &err) }()
 
 	switch c.To {
 	case JPG, JPEG:
 		c.debugf("encode %s file and output to %s\n", JPEG, newfile.Name())
 		options := &jpeg.Options{Quality: 100}
-		return jpeg.Encode(newfile, m, options)
+		err = jpeg.Encode(newfile, m, options)
+		return
 	case GIF:
 		c.debugf("encode %s file and output to %s\n", GIF, newfile.Name())
 		options := &gif.Options{NumColors: 256}
-		return gif.Encode(newfile, m, options)
+		err = gif.Encode(newfile, m, options)
+		return
 	default:
 		c.debugf("encode %s file and output to %s\n", PNG, newfile.Name())
-		return png.Encode(newfile, m)
+		err = png.Encode(newfile, m)
+		return
+	}
+}
+
+func setNewError(newErr error, currentErr *error) {
+	if *currentErr == nil {
+		currentErr = &newErr
+	} else if currentErr != nil && newErr != nil {
+		fmt.Println("[ERROR]", newErr.Error())
 	}
 }
 

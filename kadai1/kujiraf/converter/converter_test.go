@@ -93,7 +93,7 @@ var doConvertorTest = []struct {
 		"jpg -> png",
 		Converter{
 			Src:     "../testdata/valid_data",
-			Dst:     "../output_JpgToPng",
+			Dst:     "../output/JpgToPng",
 			From:    ".jpg",
 			To:      ".png",
 			IsDebug: true,
@@ -104,7 +104,7 @@ var doConvertorTest = []struct {
 		"png -> gif",
 		Converter{
 			Src:     "../testdata/valid_data",
-			Dst:     "../output_PngToGif",
+			Dst:     "../output/PngToGif",
 			From:    ".png",
 			To:      ".gif",
 			IsDebug: true,
@@ -115,7 +115,7 @@ var doConvertorTest = []struct {
 		"gif -> jpg",
 		Converter{
 			Src:     "../testdata/valid_data",
-			Dst:     "../output_GIFToJPEG",
+			Dst:     "../output/GIFToJPEG",
 			From:    ".gif",
 			To:      ".jpeg",
 			IsDebug: true,
