@@ -29,7 +29,7 @@ var validatetestdata = []struct {
 			Src:  "../testdata",
 			From: "jjpeg",
 		},
-		".jjpeg is not supported",
+		"from ext .jjpeg is not supported",
 	},
 	{
 		"invalid -to",
@@ -38,7 +38,7 @@ var validatetestdata = []struct {
 			From: "jpeg",
 			To:   "ppng",
 		},
-		".ppng is not supported",
+		"to ext .ppng is not supported",
 	},
 	{
 		"-from and -to are same",
@@ -56,7 +56,7 @@ var validatetestdata = []struct {
 			From: "jpeg",
 			To:   "jpg",
 		},
-		"-from and -to are same. -from .jpeg, -to .jpg",
+		"-from and -to are same. -from .jpeg, -to .jpeg",
 	},
 }
 

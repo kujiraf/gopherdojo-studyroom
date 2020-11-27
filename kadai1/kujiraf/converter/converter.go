@@ -11,12 +11,11 @@ import (
 	"strings"
 )
 
-// JPEG jpeg
+// supported extensions
 const (
-	JPEG = ".jpeg"
-	JPG  = ".jpg"
-	PNG  = ".png"
-	GIF  = ".gif"
+	extJpeg = ".jpeg"
+	extPng  = ".png"
+	extGif  = ".gif"
 )
 
 // Converter is image convertor.
@@ -47,30 +46,30 @@ func (c *Converter) Validate() error {
 	}
 
 	// -from, -toはサポート対象のものを指定しているか
-	tmp := []*string{&c.From, &c.To}
-	for _, ext := range tmp {
-		if !strings.Contains(*ext, ".") {
-			*ext = "." + *ext
-		}
-		if ok := isSupported(*ext); !ok {
-			return fmt.Errorf("%s is not supported", *ext)
-		}
+	if ok := isSupported(&c.From); !ok {
+		return fmt.Errorf("from ext %s is not supported", c.From)
+	}
+	if ok := isSupported(&c.To); !ok {
+		return fmt.Errorf("to ext %s is not supported", c.To)
 	}
 
 	// -fromと-toが同じ値ではないか
 	if c.From == c.To {
 		return fmt.Errorf("-from and -to are same. -from %s, -to %s", c.From, c.To)
 	}
-	if (c.From == JPEG || c.From == JPG) && (c.To == JPEG || c.To == JPG) {
-		return fmt.Errorf("-from and -to are same. -from %s, -to %s", c.From, c.To)
-	}
 
 	return nil
 }
 
-func isSupported(ext string) bool {
-	switch ext {
-	case JPEG, JPG, PNG, GIF:
+func isSupported(ext *string) bool {
+	if !strings.Contains(*ext, ".") {
+		*ext = "." + *ext
+	}
+	switch *ext {
+	case ".jpeg", ".jpg":
+		*ext = extJpeg
+		return true
+	case extPng, extGif:
 		return true
 	default:
 		return false
@@ -171,16 +170,16 @@ func (c Converter) decode(input string) (img image.Image, err error) {
 	defer func() { setNewError(in.Close(), &err) }()
 
 	switch c.From {
-	case PNG:
-		c.debugf("decode %s file %s\n", PNG, input)
+	case extPng:
+		c.debugf("decode %s file %s\n", extPng, input)
 		img, err = png.Decode(in)
 		return
-	case GIF:
-		c.debugf("decode %s file %s\n", GIF, input)
+	case extGif:
+		c.debugf("decode %s file %s\n", extGif, input)
 		img, err = gif.Decode(in)
 		return
 	default:
-		c.debugf("decode %s file %s\n", JPEG, input)
+		c.debugf("decode %s file %s\n", extJpeg, input)
 		img, err = jpeg.Decode(in)
 		return
 	}
@@ -194,18 +193,18 @@ func (c Converter) encode(output string, m image.Image) (err error) {
 	defer func() { setNewError(newfile.Close(), &err) }()
 
 	switch c.To {
-	case JPG, JPEG:
-		c.debugf("encode %s file and output to %s\n", JPEG, newfile.Name())
+	case extJpeg:
+		c.debugf("encode %s file and output to %s\n", extJpeg, newfile.Name())
 		options := &jpeg.Options{Quality: 100}
 		err = jpeg.Encode(newfile, m, options)
 		return
-	case GIF:
-		c.debugf("encode %s file and output to %s\n", GIF, newfile.Name())
+	case extGif:
+		c.debugf("encode %s file and output to %s\n", extGif, newfile.Name())
 		options := &gif.Options{NumColors: 256}
 		err = gif.Encode(newfile, m, options)
 		return
 	default:
-		c.debugf("encode %s file and output to %s\n", PNG, newfile.Name())
+		c.debugf("encode %s file and output to %s\n", extPng, newfile.Name())
 		err = png.Encode(newfile, m)
 		return
 	}
