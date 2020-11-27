@@ -37,9 +37,13 @@ type Converter struct {
 func (c *Converter) Validate() error {
 	c.debugf("Flags : %+v\n", c)
 
-	// 指定されたディレクトリは存在するか
-	if f, err := os.Stat(c.Src); os.IsNotExist(err) || !f.IsDir() {
-		return fmt.Errorf("%s directory does not exist", c.Src)
+	// ディレクトリにアクセス可能か
+	f, err := os.Stat(c.Src)
+	if err != nil {
+		return fmt.Errorf("%s failed to get directory Error:%s", c.Src, err.Error())
+	}
+	if !f.IsDir() {
+		return fmt.Errorf("%s is not directory", c.Src)
 	}
 
 	// -from, -toはサポート対象のものを指定しているか

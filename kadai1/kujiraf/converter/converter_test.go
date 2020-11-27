@@ -14,7 +14,14 @@ var validatetestdata = []struct {
 		Converter{
 			Src: "aaa",
 		},
-		"aaa directory does not exist",
+		"aaa failed to get directory Error:CreateFile aaa: The system cannot find the file specified.",
+	},
+	{
+		"not dir",
+		Converter{
+			Src: "../testdata/file",
+		},
+		"../testdata/file is not directory",
 	},
 	{
 		"invalid -from",
